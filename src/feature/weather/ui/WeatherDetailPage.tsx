@@ -9,7 +9,8 @@ import {
     NativeModules,
     SafeAreaView,
     Text,
-    View
+    View,
+    Platform
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import {ThemeConstants} from "../../../styles/theme/ThemeConstants";
@@ -17,6 +18,7 @@ import {AppTitleBar} from "../../../component/AppTitleBar";
 import Icon from 'react-native-vector-icons/Ionicons';
 import {WeatherDashboard} from "./WeatherDashboard";
 import {styles} from "./Weather.Style";
+import {getWeatherDataForIos} from "../../../utilities/Utility";
 
 const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);
 
@@ -24,16 +26,21 @@ export function WeatherDetailPage(props) {
 
     const ref = React.useRef<PagerView>(null);
     let eventSub
-    const eventEmitter = useRef(new NativeEventEmitter())
+    const eventEmitter = useRef(Platform.OS === 'android' ? new NativeEventEmitter() : null)
     const [weatherData, setWeatherData] = useState([])
     const [sourceCountryImage, setSourceCountryImage] = useState(require('../../../assets/city/budapest.png'))
     const [drawer, showDrawer] = useState(false)
     const [initialIndex, setInitialIndex] = useState(0)
 
     useEffect(() => {
-        NativeModules.ReactBridgeManager.getWeather();
-        eventSub = eventEmitter.current.addListener('WeatherResponse', callback, callback)
-        return () => eventSub?.remove()
+        if (Platform.OS === 'android'){
+            NativeModules.ReactBridgeManager.getWeather();
+            eventSub = eventEmitter.current.addListener('WeatherResponse', callback, callback)
+            return () => eventSub?.remove()
+        } else {
+            let weatherList = getWeatherDataForIos();
+            setWeatherData(weatherList)
+        }
     }, [])
 
     const callback = useCallback((event) => {
