@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {createContext, createRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
     Animated,
     FlatList,
@@ -22,12 +22,14 @@ import {getWeatherDataForIos} from "../../../utilities/Utility";
 
 const AnimatedPagerView = Animated.createAnimatedComponent(PagerView);
 
+export const AppContext = createContext(null)
+
 export function WeatherDetailPage(props) {
 
+    let NO_OF_CHARS = 256;
     const ref = React.useRef<PagerView>(null);
     let eventSub
     const eventEmitter = useRef(Platform.OS === 'android' ? new NativeEventEmitter() : null)
-    const [weatherData, setWeatherData] = useState([])
     const [sourceCountryImage, setSourceCountryImage] = useState(require('../../../assets/city/budapest.png'))
     const [drawer, showDrawer] = useState(false)
     const [initialIndex, setInitialIndex] = useState(0)
@@ -39,14 +41,59 @@ export function WeatherDetailPage(props) {
             return () => eventSub?.remove()
         } else {
             let weatherList = getWeatherDataForIos();
-            setWeatherData(weatherList)
+           // setWeatherData(weatherList)
         }
+
     }, [])
 
+    const weatherData = useMemo(() => getWeatherDataForIos(), [])
     const callback = useCallback((event) => {
         let weather = JSON.parse(event.weatherResponse)
-        setWeatherData(weather)
+       // setWeatherData(weather)
     }, [])
+
+    function areAnagram(str1, str2)
+    {
+
+        // Create a count array and initialize
+        // all values as 0
+        let count = new Array(NO_OF_CHARS);
+        for(let i = 0; i < NO_OF_CHARS; i++)
+        {
+            count[i] = 0;
+        }
+        let i;
+
+        // For each character in input strings,
+        // increment count in the corresponding
+        // count array
+        for(i = 0; i < str1.length; i++)
+        {
+            console.log(str1[i].charCodeAt(0))
+            console.log(str2[i].charCodeAt(0))
+            console.log('a'.charCodeAt(0))
+            count[str1[i].charCodeAt(0) - 'a'.charCodeAt(0)]++;
+            count[str2[i].charCodeAt(0) - 'a'.charCodeAt(0)]--;
+            console.log(JSON.stringify(count))
+        }
+
+        // If both strings are of different
+        // length. Removing this condition
+        // will make the program fail for
+        // strings like "aaca" and "aca"
+        if (str1.length != str2.length)
+            return false;
+
+        // See if there is any non-zero
+        // value in count array
+        for(i = 0; i < NO_OF_CHARS; i++)
+            if (count[i] != 0)
+            {
+                return false;
+            }
+        return true;
+    }
+
 
     function getSource(state) {
         switch (state) {
@@ -98,6 +145,7 @@ export function WeatherDetailPage(props) {
     }
 
     return (
+        <AppContext.Provider value={{weatherData}}>
         <SafeAreaView style={styles.container}>
             {<ImageBackground
                 key={initialIndex}
@@ -176,11 +224,12 @@ export function WeatherDetailPage(props) {
             </ImageBackground>}
             {drawer && <WeatherDashboard navigation={props.navigation}
                                          alertVisibility={drawer}
-                                         weatherList={weatherData}
+                                         weatherList={[]}
                                          hideAlert={(index) => {
                                              setInitialIndex(index)
                                              showDrawer(false)
                                          }}/>}
         </SafeAreaView>
+        </AppContext.Provider>
     );
 }

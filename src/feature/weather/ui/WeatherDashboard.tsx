@@ -1,19 +1,27 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {Image, Modal, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import {baseStyles} from "../../../styles/baseStyle";
 import {ThemeConstants} from "../../../styles/theme/ThemeConstants";
 import SlideInFlatList from "../../../component/SlideInFlatList";
 import {AppTitleBar} from "../../../component/AppTitleBar";
 import {styles} from "./Weather.Style";
+import {AppContext} from "./WeatherDetailPage"
+import {useDispatch, useSelector} from "react-redux";
 
 export function WeatherDashboard(props) {
 
-    const [weatherData, setWeatherData] = useState([])
+    const dispatch = useDispatch();
+    const usersInfo = useSelector(state => state.weatherData);
+
+    const [count, setCount] = useState(0)
+    const {weatherData} = useContext(AppContext)
+   // const [weatherData, setWeatherData] = useState([])
 
     useEffect(() => {
-        setWeatherData(props.weatherList)
-    }, [])
+        console.log(JSON.stringify(weatherData))
+      //  setWeatherData(props.weatherList)
+    },[count])
 
     function getSource(state) {
         switch (state) {
@@ -64,7 +72,7 @@ export function WeatherDashboard(props) {
         durationPerItem={400}
         parallelItems={1}
         itemsToFadeIn={10}
-        data={weatherData}
+        data={usersInfo}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item, index}) => (
             renderItem(item, index)
@@ -78,6 +86,11 @@ export function WeatherDashboard(props) {
                 <SafeAreaView style={[baseStyles.safeAreaViewStyle]}>
                     <AppTitleBar color={'black'} Opendrawer={() => {
                     }}/>
+                    <TouchableOpacity style={{height: 20}} onPress={() => {dispatch({
+                        type: 'onChange'
+                    })}}>
+                        <Text>{'onChange'}</Text>
+                    </TouchableOpacity>
                     {weatherList()}
                     {floatingTempScale()}
                 </SafeAreaView>

@@ -23,11 +23,6 @@ import com.google.gson.Gson
 
 class ReactModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext){
 
-    private val weatherRepo = WeatherRepository(object: ApiInterface{
-        override suspend fun findCityWeatherData(): Response<WeatherDataResponse> {
-            TODO("Not Required Since we are returning the mock data")
-        }
-    })
 
 
     override fun initialize() {
@@ -48,11 +43,7 @@ class ReactModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     @ReactMethod
     fun getWeather() {
         GlobalScope.launch(Dispatchers.IO) {
-            val response = weatherRepo.findCityWeather()
-            val writableMap = Arguments.createMap()
-            writableMap.putString("weatherResponse", Gson().toJson(response))
-            sendEvent("WeatherResponse", writableMap)
-            Log.d("aaya", "response")
+
         }
     }
 
